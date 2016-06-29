@@ -6,21 +6,25 @@ class WxQRCode extends WxBase {
     super(config);
   }
 
-  *getTicket(sceneId, data, expire, accessToken) {
+  *getTicket(sceneId, expire, accessToken) {
     if (!accessToken) accessToken = yield this.provider.getAccessToken();
-    var params = {};
-    if ( expire ) params.action_name = 'QR_SCENE';
+    var params = {action_info:{scene:{}}};
+    if ( expire ) {
+      params.action_name = 'QR_SCENE';
+      params.expire_seconds = expire;
+      params.action_info.scene.scene_id = sceneId;
+    }
     else if ( typeof (sceneId) == 'string' ){
       params.action_name = 'QR_LIMIT_STR_SCENE';
-      params.scene_str = sceneId;
+      params.action_info.scene.scene_str = sceneId;
     }
     else {
       params.action_name = 'QR_LIMIT_SCENE';
-      params.scene_id = sceneId;
+      params.action_info.scene.scene_id = sceneId;
     }
-    params.action_info = data;
     var url = `https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=${accessToken}`;
-    var result = this.jsonRequest(url, 'POST', params);
+    console.log(params, accessToken);
+    var result = yield this.jsonRequest(url, 'POST', params);
     return result;
   }
 
